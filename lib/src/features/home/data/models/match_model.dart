@@ -21,16 +21,42 @@ class MatchModel extends Equatable {
     required this.status,
   });
 
-  factory MatchModel.fromJson(Map<String, dynamic> json) {
+  // parses the cricbuzz match info into a flat model we can display
+  factory MatchModel.fromCricbuzzJson(Map<String, dynamic> matchInfo) {
+    final team1 = matchInfo['team1'] ?? {};
+    final team2 = matchInfo['team2'] ?? {};
+    final venueInfo = matchInfo['venueInfo'] ?? {};
+    final status = matchInfo['status'] ?? matchInfo['state'] ?? 'Unknown';
+
+    // scores come from the scorecard, but the match list doesn't always have them
+    // we'll pull what we can from matchScore if it exists
+    String scoreOne = '-';
+    String scoreTwo = '-';
+
+    if (matchInfo['matchScore'] != null) {
+      final matchScore = matchInfo['matchScore'];
+      final team1Score = matchScore['team1Score'];
+      final team2Score = matchScore['team2Score'];
+
+      if (team1Score != null && team1Score['inngs1'] != null) {
+        final inngs = team1Score['inngs1'];
+        scoreOne = '${inngs['runs']}/${inngs['wickets']} (${inngs['overs']})';
+      }
+      if (team2Score != null && team2Score['inngs1'] != null) {
+        final inngs = team2Score['inngs1'];
+        scoreTwo = '${inngs['runs']}/${inngs['wickets']} (${inngs['overs']})';
+      }
+    }
+
     return MatchModel(
-      id: json['id'] as String,
-      matchTitle: json['matchTitle'] as String,
-      teamOne: json['teamOne'] as String,
-      teamTwo: json['teamTwo'] as String,
-      scoreOne: json['scoreOne'] as String,
-      scoreTwo: json['scoreTwo'] as String,
-      date: json['date'] as String,
-      status: json['status'] as String,
+      id: (matchInfo['matchId'] ?? 0).toString(),
+      matchTitle: matchInfo['matchDesc'] ?? 'Match',
+      teamOne: team1['teamSName'] ?? 'TBA',
+      teamTwo: team2['teamSName'] ?? 'TBA',
+      scoreOne: scoreOne,
+      scoreTwo: scoreTwo,
+      date: venueInfo['timezone'] ?? matchInfo['startDate'] ?? '-',
+      status: status.toString(),
     );
   }
 
