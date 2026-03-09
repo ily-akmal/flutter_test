@@ -13,6 +13,11 @@ class MatchTile extends StatelessWidget {
         match.status.toLowerCase().contains('progress') ||
         match.status.toLowerCase().contains('innings');
 
+    final isUpcoming =
+        match.status.toLowerCase().contains('upcoming') ||
+        match.status.toLowerCase().contains('yet to begin') ||
+        match.status.toLowerCase().contains('starts');
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
@@ -20,8 +25,10 @@ class MatchTile extends StatelessWidget {
         side: BorderSide(
           color: isLive
               ? Colors.red.withValues(alpha: 0.5)
+              : isUpcoming
+              ? Colors.blue.withValues(alpha: 0.5)
               : Colors.transparent,
-          width: 1,
+          width: 1.5,
         ),
       ),
       elevation: 2,
@@ -45,31 +52,75 @@ class MatchTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (isLive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'LIVE',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (match.matchFormat.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(right: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[800],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          match.matchFormat,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
-                  )
-                else
-                  Text(
-                    match.date,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
+                    if (isLive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'LIVE',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    else if (isUpcoming)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'UPCOMING',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              match.date,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 12),
             _buildTeamRow(match.teamOne, match.scoreOne),

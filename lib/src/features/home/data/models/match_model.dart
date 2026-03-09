@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:intl/intl.dart';
 
 class MatchModel extends Equatable {
   final String id;
@@ -9,6 +10,8 @@ class MatchModel extends Equatable {
   final String scoreTwo;
   final String date;
   final String status;
+  final String state;
+  final String matchFormat;
 
   const MatchModel({
     required this.id,
@@ -19,14 +22,28 @@ class MatchModel extends Equatable {
     required this.scoreTwo,
     required this.date,
     required this.status,
+    required this.state,
+    required this.matchFormat,
   });
 
-  // parses the cricbuzz match info into a flat model we can display
+  bool get isLive =>
+      status.toLowerCase().contains('live') ||
+      status.toLowerCase().contains('progress') ||
+      status.toLowerCase().contains('innings');
+
+  bool get isUpcoming =>
+      state.toLowerCase().contains('preview') ||
+      status.toLowerCase().contains('upcoming') ||
+      status.toLowerCase().contains('yet to begin') ||
+      status.toLowerCase().contains('starts');
+
   factory MatchModel.fromCricbuzzJson(Map<String, dynamic> matchInfo) {
     final team1 = matchInfo['team1'] ?? {};
     final team2 = matchInfo['team2'] ?? {};
     final venueInfo = matchInfo['venueInfo'] ?? {};
     final status = matchInfo['status'] ?? matchInfo['state'] ?? 'Unknown';
+    final state = matchInfo['state'] ?? 'Unknown';
+    final matchFormat = matchInfo['matchFormat'] ?? '';
 
     // scores come from the scorecard, but the match list doesn't always have them
     // we'll pull what we can from matchScore if it exists
@@ -48,6 +65,24 @@ class MatchModel extends Equatable {
       }
     }
 
+    String finalDate = '-';
+    if (matchInfo['startDate'] != null) {
+      final ms = int.tryParse(matchInfo['startDate'].toString());
+      if (ms != null) {
+        // Sri Lanka is exactly UTC + 5:30
+        final dt = DateTime.fromMillisecondsSinceEpoch(
+          ms,
+          isUtc: true,
+        ).add(const Duration(hours: 5, minutes: 30));
+        final formattedDate = DateFormat('MMM dd, yyyy • hh:mm a').format(dt);
+        finalDate = '$formattedDate SLST';
+      } else {
+        finalDate = matchInfo['startDate'].toString();
+      }
+    } else {
+      finalDate = venueInfo['timezone'] ?? matchInfo['startDate'] ?? '-';
+    }
+
     return MatchModel(
       id: (matchInfo['matchId'] ?? 0).toString(),
       matchTitle: matchInfo['matchDesc'] ?? 'Match',
@@ -55,8 +90,10 @@ class MatchModel extends Equatable {
       teamTwo: team2['teamSName'] ?? 'TBA',
       scoreOne: scoreOne,
       scoreTwo: scoreTwo,
-      date: venueInfo['timezone'] ?? matchInfo['startDate'] ?? '-',
+      date: finalDate,
       status: status.toString(),
+      state: state.toString(),
+      matchFormat: matchFormat.toString(),
     );
   }
 
@@ -70,5 +107,7 @@ class MatchModel extends Equatable {
     scoreTwo,
     date,
     status,
+    state,
+    matchFormat,
   ];
 }

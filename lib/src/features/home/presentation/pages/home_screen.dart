@@ -8,6 +8,7 @@ import '../../logic/match_bloc/match_state.dart';
 
 import '../widgets/weather_card.dart';
 import '../widgets/match_tile.dart';
+import '../../data/models/match_model.dart';
 import '../../../../shared/widgets/custom_shimmer.dart';
 import '../../../../shared/widgets/custom_circular_loader.dart';
 
@@ -55,10 +56,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // Matches Section Header
-          _buildSectionHeader('Live & Recent Matches'),
-
-          // Matches Section List
+          // Matches Section
           BlocBuilder<MatchBloc, MatchState>(
             builder: (context, state) {
               if (state is MatchLoading) {
@@ -71,18 +69,35 @@ class HomeScreen extends StatelessWidget {
               } else if (state is MatchLoaded) {
                 if (state.matches.isEmpty) {
                   return const SliverToBoxAdapter(
-                    child: Center(child: Text('No matches available.')),
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24.0),
+                        child: Text('No matches available.'),
+                      ),
+                    ),
                   );
                 }
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return MatchTile(match: state.matches[index]);
-                    },
-                    childCount: state.matches.length > 5
-                        ? 5
-                        : state.matches.length, // Show up to 5 matches
-                  ),
+
+                final liveMatches = state.matches
+                    .where((m) => m.isLive)
+                    .toList();
+                final upcomingMatches = state.matches
+                    .where((m) => m.isUpcoming)
+                    .toList();
+                final recentMatches = state.matches
+                    .where((m) => !m.isLive && !m.isUpcoming)
+                    .take(8)
+                    .toList();
+
+                return SliverMainAxisGroup(
+                  slivers: [
+                    if (liveMatches.isNotEmpty)
+                      _buildMatchSection('Live Matches', liveMatches),
+                    if (upcomingMatches.isNotEmpty)
+                      _buildMatchSection('Upcoming Matches', upcomingMatches),
+                    if (recentMatches.isNotEmpty)
+                      _buildMatchSection('Recent Matches', recentMatches),
+                  ],
                 );
               } else if (state is MatchError) {
                 return SliverToBoxAdapter(
@@ -107,15 +122,24 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-        child: Text(
-          title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+  Widget _buildMatchSection(String title, List<MatchModel> matches) {
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
         ),
-      ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            return MatchTile(match: matches[index]);
+          }, childCount: matches.length),
+        ),
+      ],
     );
   }
 }
