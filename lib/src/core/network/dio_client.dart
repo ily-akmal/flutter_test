@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'rate_limit_interceptor.dart';
 
 class DioClient {
   late final Dio _dio;
@@ -16,6 +17,13 @@ class DioClient {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+      ),
+    );
+
+    _dio.interceptors.add(
+      RateLimitInterceptor(
+        maxRequests: 10,
+        perDuration: const Duration(seconds: 10),
       ),
     );
 

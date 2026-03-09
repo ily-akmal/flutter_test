@@ -19,7 +19,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Flutter Demo Home'),
+        title: const Text('Dashboard'),
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
