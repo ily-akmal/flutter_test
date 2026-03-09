@@ -8,6 +8,8 @@ import '../../logic/match_bloc/match_state.dart';
 
 import '../widgets/weather_card.dart';
 import '../widgets/match_tile.dart';
+import '../../../../shared/widgets/custom_shimmer.dart';
+import '../../../../shared/widgets/custom_circular_loader.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -31,7 +33,11 @@ class HomeScreen extends StatelessWidget {
               child: BlocBuilder<WeatherBloc, WeatherState>(
                 builder: (context, state) {
                   if (state is WeatherLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const CustomShimmer(
+                      width: double.infinity,
+                      height: 120,
+                      borderRadius: 16,
+                    );
                   } else if (state is WeatherLoaded) {
                     return WeatherCard(weather: state.weather);
                   } else if (state is WeatherError) {
@@ -57,11 +63,9 @@ class HomeScreen extends StatelessWidget {
             builder: (context, state) {
               if (state is MatchLoading) {
                 return const SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24.0),
-                      child: CircularProgressIndicator(),
-                    ),
+                  child: Padding(
+                    padding: EdgeInsets.all(48.0),
+                    child: CustomCircularLoader(size: 40),
                   ),
                 );
               } else if (state is MatchLoaded) {
